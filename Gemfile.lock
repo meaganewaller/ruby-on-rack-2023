@@ -1,0 +1,14 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    rack (3.0.8)
+
+PLATFORMS
+  x86_64-darwin-22
+
+DEPENDENCIES
+  bundler
+  rack
+
+BUNDLED WITH
+   2.4.14
