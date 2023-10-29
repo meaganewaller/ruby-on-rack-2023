@@ -3,11 +3,11 @@ class MyApp
     request_path = env['PATH_INFO']
 
     if request_path == '/hello'
-      return hello_response
+      hello_response
     elsif request_path == '/about'
-      return about_response
+      about_response
     else
-      return not_found_response
+      not_found_response
     end
   end
 
