@@ -9,7 +9,7 @@ describe CustomLoggerMiddleware do
   let(:logger) { Logger.new('test.log') }
 
   def app
-    CustomLoggerMiddleware.new(MyApp.new, logger)
+    CustomLoggerMiddleware.new(MyApp.new(SQLite3::Database.new(':memory:')), logger)
   end
 
   it 'logs incoming requests and outgoing responses' do
