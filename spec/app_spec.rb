@@ -4,8 +4,18 @@ require_relative "../app"
 describe MyApp do
   include Rack::Test::Methods
 
-  def app
-    MyApp.new
+  let(:app) { MyApp.new }
+
+  describe "#initialize" do
+    it "initializes a databbse connection" do
+      expect(app.instance_variable_get(:@db)).to be_a(SQLite3::Database)
+    end
+  end
+
+  describe "#create_posts_table" do
+    it "creates the posts table" do
+      expect { app.create_posts_table }.not_to raise_error
+    end
   end
 
   it 'responds with "Hello, San Diego!" for /hello' do

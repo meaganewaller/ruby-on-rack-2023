@@ -5,6 +5,16 @@ class MyApp
     @db = SQLite3::Database.new('ruby_on_rack.db')
   end
 
+  def create_posts_table
+    @db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS posts (
+        id INTEGER PRIMARY KEY,
+        title TEXT,
+        content TEXT
+      );
+    SQL
+  end
+
   def call(env)
     request_path = env['PATH_INFO']
 
