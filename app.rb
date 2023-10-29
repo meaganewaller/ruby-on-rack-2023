@@ -9,20 +9,20 @@ class MyApp
 
   def create_posts_table
     @db.execute <<-SQL
-      CREATE TABLE IF NOT EXISTS posts (
-        id INTEGER PRIMARY KEY,
-        title TEXT,
-        content TEXT
-      );
+    CREATE TABLE IF NOT EXISTS posts (
+    id INTEGER PRIMARY KEY,
+    title TEXT,
+    content TEXT
+    );
     SQL
   end
 
   def create_tils_table
     @db.execute <<-SQL
-      CREATE TABLE IF NOT EXISTS tils (
-        id INTEGER PRIMARY KEY,
-        content TEXT
-      );
+    CREATE TABLE IF NOT EXISTS tils (
+    id INTEGER PRIMARY KEY,
+    content TEXT
+    );
     SQL
   end
 
@@ -126,6 +126,7 @@ class MyApp
     content = request.params['content']
 
     post = insert_post(title, content)
+    insert_post(title, content)
 
     [201, { 'Content-Type' => 'text/html' }, ['Post created']]
   end
@@ -176,9 +177,23 @@ class MyApp
 
   def index_response
     render_view('index')
+    [200, { 'Content-Type' => 'texthtml' }, [format_posts(posts)]]
+  end
+
+  def hello_response
+    [200, { 'Content-Type' => 'text/html' }, ['Hello, San Diego!']]
   end
 
   def about_response
     render_view('about')
+  end
+
+  private
+
+  def format_posts(posts)
+    formatted_posts = posts.map do |post|
+      "<h2>#{post[1]}</h2><p>#{post[2]}</p>"
+    end
+    formatted_posts.join("\n")
   end
 end
