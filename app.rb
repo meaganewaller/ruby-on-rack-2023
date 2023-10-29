@@ -2,7 +2,7 @@ require 'sqlite3'
 
 class MyApp
   def initialize(db)
-    @db = db # SQLite3::Database.new('ruby_on_rack.db')
+    @db = db
   end
 
   def create_posts_table
