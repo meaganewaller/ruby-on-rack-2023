@@ -82,7 +82,6 @@ class MyApp
     [404, { 'Content-Type' => 'text/html' }, ['Not Found']]
   end
 
-
   def format_posts(posts)
     formatted_posts = posts.map do |post|
       "<h2>#{post[1]}</h2><p>#{post[2]}</p>"
