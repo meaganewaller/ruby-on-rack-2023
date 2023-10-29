@@ -19,6 +19,10 @@ class MyApp
     @db.execute('INSERT INTO posts (title, content) VALUES (?, ?)', [title, content])
   end
 
+  def retrieve_posts
+    @db.execute('SELECT * FROM posts')
+  end
+
   def call(env)
     request_path = env['PATH_INFO']
 

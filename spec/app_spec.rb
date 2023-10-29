@@ -27,6 +27,25 @@ describe MyApp do
     end
   end
 
+  describe "#retrieve_posts" do
+    before do
+      app.create_posts_table
+      app.insert_post("Hello, San Diego!", "This is a simple Rack application")
+      app.insert_post("Another Post!", "This is another post")
+    end
+
+    it "does not raise an error" do
+      expect { app.retrieve_posts }.not_to raise_error
+    end
+
+    it "returns all posts" do
+      expect(app.retrieve_posts).to eq([
+        [1, "Hello, San Diego!", "This is a simple Rack application"],
+        [2, "Another Post!", "This is another post"]
+      ])
+    end
+  end
+
   it 'responds with "Hello, San Diego!" for /hello' do
     get "/hello"
     expect(last_response).to be_ok
