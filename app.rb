@@ -1,4 +1,10 @@
+require 'sqlite3'
+
 class MyApp
+  def initialize
+    @db = SQLite3::Database.new('ruby_on_rack.db')
+  end
+
   def call(env)
     request_path = env['PATH_INFO']
 
