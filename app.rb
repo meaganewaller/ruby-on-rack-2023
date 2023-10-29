@@ -16,7 +16,7 @@ class MyApp
   end
 
   def about_response
-    [200, { 'Content-Type' => 'text/html' }, ['About Page']]
+    [200, { 'Content-Type' => 'text/html' }, ['This is a simple Rack application.']]
   end
 
   def not_found_response
