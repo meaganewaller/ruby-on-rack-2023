@@ -1,8 +1,8 @@
 require 'sqlite3'
 
 class MyApp
-  def initialize
-    @db = SQLite3::Database.new('ruby_on_rack.db')
+  def initialize(db)
+    @db = db # SQLite3::Database.new('ruby_on_rack.db')
   end
 
   def create_posts_table
@@ -13,6 +13,10 @@ class MyApp
         content TEXT
       );
     SQL
+  end
+
+  def insert_post(title, content)
+    @db.execute('INSERT INTO posts (title, content) VALUES (?, ?)', [title, content])
   end
 
   def call(env)

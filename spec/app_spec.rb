@@ -4,10 +4,10 @@ require_relative "../app"
 describe MyApp do
   include Rack::Test::Methods
 
-  let(:app) { MyApp.new }
+  let(:app) { MyApp.new(SQLite3::Database.new(":memory:")) }
 
   describe "#initialize" do
-    it "initializes a databbse connection" do
+    it "initializes a database connection" do
       expect(app.instance_variable_get(:@db)).to be_a(SQLite3::Database)
     end
   end
@@ -15,6 +15,15 @@ describe MyApp do
   describe "#create_posts_table" do
     it "creates the posts table" do
       expect { app.create_posts_table }.not_to raise_error
+    end
+  end
+
+  describe "#insert_post" do
+    it "inserts a post" do
+      app.create_posts_table
+      app.instance_variable_get(:@db).transaction do
+        expect { app.insert_post("Hello, San Diego!", "This is a simple Rack application.") }.not_to raise_error
+      end
     end
   end
 
