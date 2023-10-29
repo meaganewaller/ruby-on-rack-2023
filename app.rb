@@ -66,7 +66,7 @@ class MyApp
     if posts.empty?
       [200, { 'Content-Type' => 'text/html' }, ['No posts available']]
     else
-      [200, { 'Content-Type' => 'texthtml' }, [format_posts(posts)]]
+      [200, { 'Content-Type' => 'text/html' }, [format_posts(posts)]]
     end
   end
 
