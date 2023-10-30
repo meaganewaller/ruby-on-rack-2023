@@ -1,0 +1,14 @@
+doctype html
+html
+  head
+    title All Posts
+  body
+    nav
+      ul
+        li: a href="/" Home
+        li: a href="/about" About
+        li: a href="/posts" Posts
+    h1 All Posts
+    - posts.each do |post|
+      h2 = post[1]
+      p = post[2]
