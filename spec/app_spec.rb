@@ -104,21 +104,21 @@ describe MyApp do
     end
   end
 
-  it 'responds with "Hello, San Diego!" for /hello' do
-    get '/hello'
+  it 'responds with "Ruby on Rack" for /' do
+    get '/'
     expect(last_response).to be_ok
-    expect(last_response.body).to eq('Hello, San Diego!')
+    expect(last_response.body).to include('Ruby on Rack')
   end
 
   it 'responds with "This is a simple Rack application." for /about' do
     get '/about'
     expect(last_response).to be_ok
-    expect(last_response.body).to eq('This is a simple Rack application.')
+    expect(last_response.body).to include('This is a simple Rack application.')
   end
 
-  it 'responds with "Not Found" for an unknown path' do
+  it 'responds with "Not found" for an unknown path' do
     get '/unknown'
     expect(last_response).to be_not_found
-    expect(last_response.body).to eq('Not Found')
+    expect(last_response.body).to include('Not found')
   end
 end

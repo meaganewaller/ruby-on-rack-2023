@@ -1,4 +1,5 @@
 require 'sqlite3'
+require 'slim'
 
 class MyApp
   def initialize(db)
@@ -27,8 +28,8 @@ class MyApp
     request_path = env['PATH_INFO']
 
     case request_path
-    when '/hello'
-      hello_response
+    when '/'
+      index_response
     when '/about'
       about_response
     when '/create_post'
@@ -44,11 +45,23 @@ class MyApp
         [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
       end
     else
-      not_found_response
+      render_not_found
     end
   end
 
   private
+
+  def render_view(view_name, locals = {})
+    template = File.read("views/#{view_name}.slim")
+    rendered = Slim::Template.new { template }.render(self, locals)
+    [200, { 'Content-Type' => 'text/html' }, [rendered]]
+  end
+
+  def render_not_found
+    template = File.read("views/not_found.slim")
+    rendered = Slim::Template.new { template }.render(self)
+    [404, { 'Content-Type' => 'text/html' }, [rendered]]
+  end
 
   def create_post(env)
     request = Rack::Request.new(env)
@@ -66,20 +79,16 @@ class MyApp
     if posts.empty?
       [200, { 'Content-Type' => 'text/html' }, ['No posts available']]
     else
-      [200, { 'Content-Type' => 'text/html' }, [format_posts(posts)]]
+      render_view('posts', posts: posts.reverse)
     end
   end
 
-  def hello_response
-    [200, { 'Content-Type' => 'text/html' }, ['Hello, San Diego!']]
+  def index_response
+    render_view('index')
   end
 
   def about_response
-    [200, { 'Content-Type' => 'text/html' }, ['This is a simple Rack application.']]
-  end
-
-  def not_found_response
-    [404, { 'Content-Type' => 'text/html' }, ['Not Found']]
+    render_view('about')
   end
 
   def format_posts(posts)
