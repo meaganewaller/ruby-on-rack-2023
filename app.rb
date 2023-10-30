@@ -24,6 +24,10 @@ class MyApp
     @db.execute('SELECT * FROM posts')
   end
 
+  def retrieve_post(id)
+    @db.execute('SELECT * FROM posts WHERE id = ? LIMIT 1', id)[0]
+  end
+
   def call(env)
     request_path = env['PATH_INFO']
 
@@ -44,6 +48,9 @@ class MyApp
       else
         [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
       end
+    when %r{/posts/(\d+)} # New route for dynamic post retrieval
+      post_id = Regexp.last_match(1).to_i
+      show_post(post_id)
     else
       render_not_found
     end
@@ -58,7 +65,7 @@ class MyApp
   end
 
   def render_not_found
-    template = File.read("views/not_found.slim")
+    template = File.read('views/not_found.slim')
     rendered = Slim::Template.new { template }.render(self)
     [404, { 'Content-Type' => 'text/html' }, [rendered]]
   end
@@ -80,6 +87,16 @@ class MyApp
       [200, { 'Content-Type' => 'text/html' }, ['No posts available']]
     else
       render_view('posts', posts: posts.reverse)
+    end
+  end
+
+  def show_post(id)
+    post = retrieve_post(id)
+
+    if post
+      render_view('post', post:)
+    else
+      render_not_found
     end
   end
 

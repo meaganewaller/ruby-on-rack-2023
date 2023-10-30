@@ -1,14 +1,13 @@
 doctype html
 html
   head
-    title All Posts
+    title= "#{post[1]} | Ruby on Rack"
   body
     nav
       ul
         li: a href="/" Home
         li: a href="/about" About
         li: a href="/posts" Posts
-    h1 All Posts
-    - posts.each do |post|
-      h2: a href="/posts/#{post[0]}" #{post[1]}
+      h1= post[1]
       p= post[2]
+

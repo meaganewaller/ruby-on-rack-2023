@@ -121,4 +121,46 @@ describe MyApp do
     expect(last_response).to be_not_found
     expect(last_response.body).to include('Not found')
   end
+
+  describe 'GET /posts/:id' do
+    context 'when a post with the given ID exists' do
+      it 'responds with a 200 status and displays the post' do
+        app.create_posts_table
+        app.insert_post('Test Post 1', 'This is the first test post.')
+        post_id = app.retrieve_posts.first[0]
+
+        get "/posts/#{post_id}"
+
+        expect(last_response).to be_ok
+        expect(last_response.body).to include('Test Post 1')
+        expect(last_response.body).to include('This is the first test post.')
+      end
+    end
+
+    context 'when a post with the given ID does not exist' do
+      it 'responds with a 404 status and displays a "Not Found" message' do
+        app.create_posts_table
+        get '/posts/123'
+
+        expect(last_response).to be_not_found
+        expect(last_response.body).to include('Not Found')
+      end
+    end
+  end
+
+   describe 'GET /posts/:id from the posts view' do
+    it 'navigates to the individual post view' do
+      app.create_posts_table
+      app.insert_post('Test Post 1', 'This is the first test post.')
+      post_id = app.retrieve_posts.first[0]
+
+      get '/posts'
+      expect(last_response).to be_ok
+
+      post_link = last_response.body.scan(%r{<a href="/posts/#{post_id}">})
+      expect(post_link.size).to eq(1)
+      get "/posts/#{post_id}"
+      expect(last_response).to be_ok
+    end
+  end
 end
