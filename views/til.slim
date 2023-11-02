@@ -1,0 +1,23 @@
+doctype html
+html
+  head
+    title TIL! | Ruby on Rack
+  body
+    h1 TIL (Today I Learned)
+
+    ul#til-entries
+
+    form action="/til" method="post"
+      textarea name="learned" rows="4" cols="50" required
+      br
+      button type="submit" Share TIL
+
+  javascript:
+    const ws = new WebSocket('ws://localhost:9292/til');
+    ws.onmessage = (event) => {
+      const tilEntries = document.getElementById('til-entries');
+      const newEntry = document.createElement('li');
+      newEntry.textContent = event.data;
+      tilEntries.appendChild(newEntry);
+    }
+

@@ -1,3 +1,4 @@
+require 'faye/websocket'
 require 'sqlite3'
 require 'slim'
 
@@ -16,6 +17,15 @@ class MyApp
     SQL
   end
 
+  def create_tils_table
+    @db.execute <<-SQL
+      CREATE TABLE IF NOT EXISTS tils (
+        id INTEGER PRIMARY KEY,
+        content TEXT
+      );
+    SQL
+  end
+
   def insert_post(title, content)
     @db.execute('INSERT INTO posts (title, content) VALUES (?, ?)', [title, content])
   end
@@ -24,35 +34,59 @@ class MyApp
     @db.execute('SELECT * FROM posts')
   end
 
+  def retrieve_tils
+    @db.execute('SELECT * FROM tils')
+  end
+
   def retrieve_post(id)
     @db.execute('SELECT * FROM posts WHERE id = ? LIMIT 1', id)[0]
   end
 
   def call(env)
-    request_path = env['PATH_INFO']
+    if Faye::WebSocket.websocket?(env)
+      ws = Faye::WebSocket.new(env)
 
-    case request_path
-    when '/'
-      index_response
-    when '/about'
-      about_response
-    when '/create_post'
-      if env['REQUEST_METHOD'] == 'POST'
-        create_post(env)
-      else
-        [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+      ws.on :message do |event|
+        puts "EVENT IS: #{event.inspect}"
+        ws.send(event.data)
       end
-    when '/posts'
-      if env['REQUEST_METHOD'] == 'GET'
-        view_posts
-      else
-        [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+
+      ws.on :close do |event|
+        p [:close, event.code, event.reason]
+        ws = nil
       end
-    when %r{/posts/(\d+)} # New route for dynamic post retrieval
-      post_id = Regexp.last_match(1).to_i
-      show_post(post_id)
+
+      ws.rack_response
     else
-      render_not_found
+      request_path = env['PATH_INFO']
+
+      case request_path
+      when '/'
+        index_response
+      when '/about'
+        about_response
+      when '/create_post'
+        if env['REQUEST_METHOD'] == 'POST'
+          create_post(env)
+        else
+          [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+        end
+      when '/posts'
+        if env['REQUEST_METHOD'] == 'GET'
+          view_posts
+        else
+          [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+        end
+      when %r{/posts/(\d+)} # New route for dynamic post retrieval
+        post_id = Regexp.last_match(1).to_i
+        show_post(post_id)
+      when '/til'
+        if env['REQUEST_METHOD'] == 'GET'
+          view_tils
+        end
+      else
+        render_not_found
+      end
     end
   end
 
@@ -88,6 +122,12 @@ class MyApp
     else
       render_view('posts', posts: posts.reverse)
     end
+  end
+
+  def view_tils
+    tils = retrieve_tils || []
+
+    render_view('til', tils: tils&.reverse)
   end
 
   def show_post(id)
