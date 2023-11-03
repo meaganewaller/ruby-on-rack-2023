@@ -18,6 +18,26 @@ describe MyApp do
     end
   end
 
+  describe '#create_tils_table' do
+    it 'creates the tils table' do
+      expect { app.create_tils_table }.not_to raise_error
+    end
+  end
+
+  describe '#insert_til' do
+    before { app.create_tils_table }
+
+    it 'does not raise an error' do
+      expect { app.retrieve_tils }.not_to raise_error
+    end
+
+    it 'inserts a til' do
+      app.instance_variable_get(:@db).transaction do
+        expect { app.insert_til('I learned something') }.not_to raise_error
+      end
+    end
+  end
+
   describe '#insert_post' do
     before { app.create_posts_table }
 
@@ -29,6 +49,27 @@ describe MyApp do
       app.instance_variable_get(:@db).transaction do
         expect { app.insert_post('Hello, San Diego!', 'This is a simple Rack application.') }.not_to raise_error
       end
+    end
+  end
+
+  describe '#retrieve_tils' do
+    before do
+      app.create_tils_table
+      app.insert_til('I learned something!')
+      app.insert_til('I also learned something!')
+    end
+
+    it 'does not raise an error' do
+      expect { app.retrieve_tils }.not_to raise_error
+    end
+
+    it 'returns all tils' do
+      expect(app.retrieve_tils).to eq(
+        [
+          [1, 'I learned something!'],
+          [2, 'I also learned something!']
+        ]
+      )
     end
   end
 
@@ -53,6 +94,27 @@ describe MyApp do
     end
   end
 
+  describe '#create_til' do
+    it 'inserts a til' do
+      app.create_tils_table
+
+      til = {
+        'content' => 'I learned something!'
+      }
+
+      post '/til', til
+
+      expect(last_response).to be_created
+      expect(last_response.body).to include('TIL created')
+    end
+
+    it 'returns Method Not Allowed for non-POST requests' do
+      patch '/til', {}
+
+      expect(last_response).to be_method_not_allowed
+    end
+  end
+
   describe '#create_post' do
     it 'inserts a post' do
       app.create_posts_table
@@ -72,6 +134,29 @@ describe MyApp do
       get '/create_post'
       expect(last_response).to be_method_not_allowed
       expect(last_response.body).to include('Method Not Allowed')
+    end
+  end
+
+  describe '#view_tils' do
+    it 'displays available tils' do
+      app.create_tils_table
+      app.insert_til('I learned something!')
+      app.insert_til('I also learned something!')
+
+      get '/til'
+
+      expect(last_response).to be_ok
+      expect(last_response.body).to include('I learned something!')
+      expect(last_response.body).to include('I also learned something!')
+    end
+
+    it 'displays a message for no tils available' do
+      app.create_tils_table
+
+      get '/til'
+
+      expect(last_response).to be_ok
+      expect(last_response.body).to include('No TILs yet!')
     end
   end
 
@@ -148,7 +233,7 @@ describe MyApp do
     end
   end
 
-   describe 'GET /posts/:id from the posts view' do
+  describe 'GET /posts/:id from the posts view' do
     it 'navigates to the individual post view' do
       app.create_posts_table
       app.insert_post('Test Post 1', 'This is the first test post.')

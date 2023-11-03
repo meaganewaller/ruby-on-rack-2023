@@ -1,0 +1,39 @@
+doctype html
+html
+  head
+    title TIL! | Ruby on Rack
+  body
+    h1 TIL (Today I Learned)
+
+    ul#til-entries
+      - if tils.empty?
+        li#empty= "No TILs yet!"
+      - for til in tils
+        li= til[1]
+
+    form#til-form
+      textarea name="content" rows="2" cols="25"
+      br
+      button type="button" onclick="submitTIL()" Share TIL
+
+  javascript:
+    function submitTIL() {
+      const content = document.querySelector('textarea[name="content"]').value;
+      const xhr = new XMLHttpRequest();
+      xhr.open('POST', '/til', true);
+      xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+      xhr.send('content=' + content);
+
+      document.querySelector('textarea[name="content"]').value = '';
+    }
+
+    const ws = new WebSocket('ws://localhost:9292/til');
+    ws.onmessage = (event) => {
+      const tilEntries = document.getElementById('til-entries');
+      const newEntry = document.createElement('li');
+      const emptyLi = document.getByElementById('empty');
+      emptyLi.remove();
+      newEntry.textContent = event.data;
+      tilEntries.appendChild(newEntry);
+    }
+

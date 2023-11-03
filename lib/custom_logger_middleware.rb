@@ -1,4 +1,4 @@
-require_relative '../logger'
+require_relative "../logger"
 
 class CustomLoggerMiddleware
   def initialize(app, logger)
@@ -7,11 +7,11 @@ class CustomLoggerMiddleware
   end
 
   def call(env)
-    @logger.info("Received request: #{env['REQUEST_METHOD']} #{env['PATH_INFO']}")
+    @logger.info("Received request: #{env["REQUEST_METHOD"]} #{env["PATH_INFO"]}")
 
     status, headers, response = @app.call(env)
 
-    @logger.info("Responded with: #{status} #{headers['Content-Type']}")
+    @logger.info("Responded with: #{status} #{headers&.fetch("Content-Type", nil)}")
 
     [status, headers, response]
   end
