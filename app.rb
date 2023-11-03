@@ -30,12 +30,24 @@ class MyApp
     @db.execute('INSERT INTO posts (title, content) VALUES (?, ?)', [title, content])
   end
 
+  def insert_til(content)
+    @db.execute('INSERT INTO tils (content) VALUES (?)', content)
+
+    til_id = @db.last_insert_row_id
+
+    retrieve_til(til_id)
+  end
+
   def retrieve_posts
     @db.execute('SELECT * FROM posts')
   end
 
   def retrieve_tils
     @db.execute('SELECT * FROM tils')
+  end
+
+  def retrieve_til(id)
+    @db.execute('SELECT * FROM tils WHERE id = ? LIMIT 1', id)[0]
   end
 
   def retrieve_post(id)
@@ -45,15 +57,15 @@ class MyApp
   def call(env)
     if Faye::WebSocket.websocket?(env)
       ws = Faye::WebSocket.new(env)
+      @clients ||= []
+      @clients << ws
 
       ws.on :message do |event|
-        puts "EVENT IS: #{event.inspect}"
         ws.send(event.data)
       end
 
-      ws.on :close do |event|
-        p [:close, event.code, event.reason]
-        ws = nil
+      ws.on :close do |_event|
+        @clients.delete(ws)
       end
 
       ws.rack_response
@@ -83,6 +95,10 @@ class MyApp
       when '/til'
         if env['REQUEST_METHOD'] == 'GET'
           view_tils
+        elsif env['REQUEST_METHOD'] == 'POST'
+          create_til(env)
+        else
+          [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
         end
       else
         render_not_found
@@ -109,9 +125,27 @@ class MyApp
     title = request.params['title']
     content = request.params['content']
 
-    insert_post(title, content)
+    post = insert_post(title, content)
 
     [201, { 'Content-Type' => 'text/html' }, ['Post created']]
+  end
+
+  def create_til(env)
+    request = Rack::Request.new(env)
+    content = request.params['content']
+
+    insert_til(content)
+    send_til_to_websockets(content)
+
+    [201, { 'Content-Type' => 'text/html' }, ['TIL created']]
+  end
+
+  def send_til_to_websockets(content)
+    return unless @clients
+
+    @clients.each do |client|
+      client.send(content)
+    end
   end
 
   def view_posts
@@ -127,7 +161,7 @@ class MyApp
   def view_tils
     tils = retrieve_tils || []
 
-    render_view('til', tils: tils&.reverse)
+    render_view('til', tils:)
   end
 
   def show_post(id)
@@ -146,12 +180,5 @@ class MyApp
 
   def about_response
     render_view('about')
-  end
-
-  def format_posts(posts)
-    formatted_posts = posts.map do |post|
-      "<h2>#{post[1]}</h2><p>#{post[2]}</p>"
-    end
-    formatted_posts.join("\n")
   end
 end

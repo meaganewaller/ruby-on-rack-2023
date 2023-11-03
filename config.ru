@@ -6,11 +6,6 @@ require_relative "lib/custom_logger_middleware"
 
 Faye::WebSocket.load_adapter("thin")
 
-thin = Rack::Handler.get("thin")
+app = CustomLoggerMiddleware.new(MyApp.new(SQLite3::Database.new("ruby_on_rack.db")), Logger.new("custom.log"))
 
-logger = Logger.new("custom.log")
-db = SQLite3::Database.new("ruby_on_rack.db")
-
-app = CustomLoggerMiddleware.new(MyApp.new(db), logger)
-
-thin.run(app, Port: 9292)
+run app
