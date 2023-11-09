@@ -61,7 +61,9 @@ class MyApp
       @clients << ws
 
       ws.on :message do |event|
-        ws.send(event.data)
+        @clients.each do |client|
+          client.send(event.data)
+        end
       end
 
       ws.on :close do |_event|
@@ -81,13 +83,13 @@ class MyApp
         if env['REQUEST_METHOD'] == 'POST'
           create_post(env)
         else
-          [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+          [405, { 'Content-Type' => 'text/plain' }, ['Method Not Allowed']]
         end
       when '/posts'
         if env['REQUEST_METHOD'] == 'GET'
           view_posts
         else
-          [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+          [405, { 'Content-Type' => 'text/plain' }, ['Method Not Allowed']]
         end
       when %r{/posts/(\d+)} # New route for dynamic post retrieval
         post_id = Regexp.last_match(1).to_i
@@ -98,7 +100,7 @@ class MyApp
         elsif env['REQUEST_METHOD'] == 'POST'
           create_til(env)
         else
-          [405, { 'Content-Type' => 'text/html' }, ['Method Not Allowed']]
+          [405, { 'Content-Type' => 'text/plain' }, ['Method Not Allowed']]
         end
       else
         render_not_found
@@ -141,7 +143,7 @@ class MyApp
   end
 
   def send_til_to_websockets(content)
-    return unless @clients
+    return [500, {}, []] unless @clients
 
     @clients.each do |client|
       client.send(content)
@@ -149,19 +151,11 @@ class MyApp
   end
 
   def view_posts
-    posts = retrieve_posts
-
-    if posts.empty?
-      [200, { 'Content-Type' => 'text/html' }, ['No posts available']]
-    else
-      render_view('posts', posts: posts.reverse)
-    end
+    render_view('posts', posts: retrieve_posts || [])
   end
 
   def view_tils
-    tils = retrieve_tils || []
-
-    render_view('til', tils:)
+    render_view('til', tils: retrieve_tils || [])
   end
 
   def show_post(id)
